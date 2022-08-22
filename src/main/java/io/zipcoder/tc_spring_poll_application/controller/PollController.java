@@ -1,6 +1,7 @@
 package io.zipcoder.tc_spring_poll_application.controller;
 
 import io.zipcoder.tc_spring_poll_application.domain.Poll;
+import io.zipcoder.tc_spring_poll_application.exception.ResourceNotFoundException;
 import io.zipcoder.tc_spring_poll_application.repositories.PollRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.validation.Valid;
 import javax.xml.ws.Response;
 import java.net.URI;
 
@@ -24,6 +26,8 @@ public class PollController {
 
     @RequestMapping(value="/polls", method = RequestMethod.GET)
     public ResponseEntity<Iterable<Poll>> getAllPolls() {
+
+
         Iterable<Poll> allPolls = pollRepository.findAll();
         return new ResponseEntity<>(allPolls, HttpStatus.OK);
     }
@@ -52,23 +56,39 @@ public class PollController {
     Inside the method, we use the PollRepository’s findOne finder method to read the poll and pass it as part of a ResponseEntity.
      */
 
+    @Valid
+
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.GET)
     public ResponseEntity<?> getPoll(@PathVariable Long pollId){
+        verifyPoll(pollId);
         Poll p = pollRepository.findOne(pollId);
         return new ResponseEntity<>(p, HttpStatus.OK);
     }
 
+    @Valid
     @RequestMapping(value="/polls/{pollID}", method=RequestMethod.PUT)
     public ResponseEntity<?> updatePoll(@RequestBody Poll poll, @PathVariable Long pollId){
         //save the entity
+        verifyPoll(pollId);
         Poll p = pollRepository.save(poll);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/polls/{pollId}", method=RequestMethod.DELETE)
     public ResponseEntity<?> deletePoll(@PathVariable Long pollId){
+        verifyPoll(pollId);
         pollRepository.delete(pollId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    public void verifyPoll(Long pollId) {
+        if(!pollRepository.exists(pollId)){
+            throw new ResourceNotFoundException("This id does not exist");
+        }
+    }
+
+
+
 
 }
