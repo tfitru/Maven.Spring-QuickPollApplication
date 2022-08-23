@@ -3,6 +3,7 @@ package io.zipcoder.tc_spring_poll_application.controller;
 import io.zipcoder.tc_spring_poll_application.domain.Poll;
 import io.zipcoder.tc_spring_poll_application.exception.ResourceNotFoundException;
 import io.zipcoder.tc_spring_poll_application.repositories.PollRepository;
+import io.zipcoder.tc_spring_poll_application.service.PollService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,12 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
-import javax.xml.ws.Response;
 import java.net.URI;
+import java.util.List;
 
 @RestController
 public class PollController {
 
+    @Autowired
+    private PollService service;
     @Autowired
     PollRepository pollRepository;
 
@@ -57,7 +60,6 @@ public class PollController {
      */
 
     @Valid
-
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.GET)
     public ResponseEntity<?> getPoll(@PathVariable Long pollId){
         verifyPoll(pollId);
@@ -81,6 +83,17 @@ public class PollController {
         pollRepository.delete(pollId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @RequestMapping(value="/pollsp", method=RequestMethod.GET)
+    private APIResponse<List<Poll>> getPolls(){
+        List<Poll> allPolls = service.findAllPolls();
+        return new APIResponse<>(allPolls.size(), allPolls);
+    }
+
+
+
+
+
 
     public void verifyPoll(Long pollId) {
         if(!pollRepository.exists(pollId)){
